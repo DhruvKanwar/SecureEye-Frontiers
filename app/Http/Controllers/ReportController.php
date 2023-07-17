@@ -6,11 +6,18 @@ use App\Exports\BiometricExport;
 use Illuminate\Http\Request;
 use App\Models\SegmentDetail;
 use App\Models\SiteInfo;
+use App\Models\SendEmail;
 use App\Models\DailyReport;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\CCTVExport;
+use App\Exports\IPphoneExport;
+use App\Exports\ITBIOMETRICExport;
+use App\Exports\ITCCTVExport;
+use App\Exports\ITIPphoneExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+
 
 
 
@@ -59,6 +66,86 @@ class ReportController extends Controller
         return $segment_details;
     }
 
+
+    public function send_email_to_it(Request $request)
+    {
+        $details = Auth::user();
+        $fetch_data = DailyReport::where('report_date', date('d-m-Y'))->first();
+        if(!empty($fetch_data))
+        {
+
+                $currentDate = date('j');
+
+                $cctv_headings = array_merge(['S No', 'Location', 'Cameras Installed', 'Count of Cameras not Working',], range(1, $currentDate));
+                $today_date = date('d-m-Y');
+
+                $cctv_export = new ITCCTVExport($cctv_headings);
+            // $collection = $cctv_export->collection();
+            // return $collection;
+
+                $cctv_filePath = 'IT_exports/cctv_data_' . $today_date . '.xlsx';
+                $cctv = Excel::store($cctv_export, $cctv_filePath, 'public');
+               
+                return $cctv;
+
+                $biometric_headings = array_merge(['S No', 'Location', 'Attendance Mode', 'Employee Count',], range(1, $currentDate));
+
+                $biometric_export = new ITBIOMETRICExport($biometric_headings);
+                $biometric_filePath = 'IT_exports/biometric_data_' . $today_date . '.xlsx';
+                $biometric = Excel::store($biometric_export, $biometric_filePath, 'public');
+
+                $iPphone_headings = array_merge(['S No', 'Location', 'Ext'], range(1, $currentDate));
+
+                $ipPhone_export = new ITIPphoneExport($iPphone_headings);
+                $ipPhone_filePath = 'IT_exports/ipPhone_data_' . $today_date . '.xlsx';
+                $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
+
+                if ($cctv && $biometric && $ipPhone) {
+                    $get_email = SendEmail::where('location_id', $location_id)->first();
+                    $data["email"] = $get_email->email;
+                    $data["title"] = "Daily Report " . date('d-m-Y');
+                    $data["body"] = "Please Find the file attachment for ter List";
+
+                    $cctv_file = [
+                        public_path('storage') => storage_path('app/public/' . $cctv_filePath),
+                    ];
+                    $biometric_file = [
+                        public_path('storage') => storage_path('app/public/' . $biometric_filePath),
+                    ];
+                    $ipPhone_files = [
+                        public_path('storage') => storage_path('app/public/' . $ipPhone_filePath),
+                    ];
+
+                    Mail::send('emails.sendDailyReport', $data, function ($message) use ($data, $cctv_file, $biometric_file, $ipPhone_files) {
+                        $message->to($data["email"], $data["email"])
+                            ->subject($data["title"]);
+
+                        foreach ($cctv_file as $file) {
+                            $message->attach($file);
+                        }
+                        foreach ($biometric_file as $file) {
+                            $message->attach($file);
+                        }
+                        foreach ($ipPhone_files as $file) {
+                            $message->attach($file);
+                        }
+                    });
+                }
+
+
+
+                return response()->json(['message' => 'Excel file stored successfully']);
+
+
+                // // Generate the collection
+                // $collection = $export->collection();
+                // return $collection;
+
+            
+
+        }
+    }
+
     public function submit_daily_report(Request $request)
     {
         $data = $request->all();
@@ -82,20 +169,61 @@ class ReportController extends Controller
 
                 $currentDate = date('j');
 
-                $cctv_headings = array_merge(['S No', 'Location', 'Cameras Installed','Count of Cameras not Working',], range(1, $currentDate));
+                $cctv_headings = array_merge(['S No', 'Location', 'Cameras Installed', 'Count of Cameras not Working',], range(1, $currentDate));
                 $today_date = date('d-m-Y');
 
+
                 $cctv_export = new CCTVExport($cctv_headings, $location_id);
-                $filePath = 'exports/cctv_data_' . $today_date . '.xlsx';
-                $cctv = Excel::store($cctv_export, $filePath, 'public');
+                $cctv_filePath = 'exports/cctv_data_' . $today_date . '.xlsx';
+                $cctv = Excel::store($cctv_export, $cctv_filePath, 'public');
 
                 $biometric_headings = array_merge(['S No', 'Location', 'Attendance Mode', 'Employee Count',], range(1, $currentDate));
 
                 $biometric_export = new BiometricExport($biometric_headings, $location_id);
-                $filePath = 'exports/biometric_data_' . $today_date . '.xlsx';
-                $cctv = Excel::store($biometric_export, $filePath, 'public');
-            
-                return $cctv;
+                $biometric_filePath = 'exports/biometric_data_' . $today_date . '.xlsx';
+                $biometric = Excel::store($biometric_export, $biometric_filePath, 'public');
+
+                $iPphone_headings = array_merge(['S No', 'Location', 'Ext'], range(1, $currentDate));
+
+                $ipPhone_export = new IPphoneExport($iPphone_headings, $location_id);
+                $ipPhone_filePath = 'exports/ipPhone_data_' . $today_date . '.xlsx';
+                $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
+
+                if ($cctv && $biometric && $ipPhone) {
+                    $get_email = SendEmail::where('location_id', $location_id)->first();
+                    $data["email"] = $get_email->email;
+                    $data["title"] = "Daily Report " . date('d-m-Y');
+                    $data["body"] = "Please Find the file attachment for ter List";
+
+                    $cctv_file = [
+                        public_path('storage') => storage_path('app/public/'.$cctv_filePath),
+                    ];
+                    $biometric_file = [
+                        public_path('storage') => storage_path('app/public/' . $biometric_filePath),
+                    ];
+                    $ipPhone_files = [
+                        public_path('storage') => storage_path('app/public/' . $ipPhone_filePath),
+                    ];
+
+                    print_r("Mail stopped in local");
+                    exit;
+                    Mail::send('emails.sendDailyReport', $data, function ($message) use ($data, $cctv_file,$biometric_file,$ipPhone_files) {
+                        $message->to($data["email"], $data["email"])
+                            ->subject($data["title"]);
+
+                        foreach ($cctv_file as $file) {
+                            $message->attach($file);
+                        }
+                        foreach ($biometric_file as $file) {
+                            $message->attach($file);
+                        }
+                        foreach ($ipPhone_files as $file) {
+                            $message->attach($file);
+                        }
+                    });
+                }
+
+
 
                 return response()->json(['message' => 'Excel file stored successfully']);
 

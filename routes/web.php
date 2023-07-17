@@ -30,4 +30,6 @@ Route::get('/daily_report', [App\Http\Controllers\ReportController::class, 'inde
 Route::post('/get_locaion_segment', [App\Http\Controllers\ReportController::class, 'get_locaion_segment']);
 Route::post('/submit_daily_report', [App\Http\Controllers\ReportController::class, 'submit_daily_report']);
 Route::get('/download_excel', [App\Http\Controllers\ReportController::class, 'download_excel']);
+Route::get('/send_email_to_it', [App\Http\Controllers\ReportController::class, 'send_email_to_it']);
+
 

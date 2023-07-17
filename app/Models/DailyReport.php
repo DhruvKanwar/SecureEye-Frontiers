@@ -17,4 +17,8 @@ class DailyReport extends Model
     {
         return $this->belongsTo('App\Models\SiteInfo', 'location_id');
     }
+    public function Itinfo()
+    {
+        return $this->hasOne('App\Models\SiteInfo','id', 'location_id');
+    }
 }

@@ -35,6 +35,7 @@
 
                           </div>
                       </div>
+                      <button class="btn btn-primary" type="button" @click="send_email_it()">Send IT Email</button>
                       <button class="btn btn-primary" type="button" @click="submit_report()">Submit form</button>
                   </form>
               </div>
@@ -60,6 +61,30 @@
               //   alert('hello');
           },
           methods: {
+              send_email_it: function() {
+                  axios.get('/send_email_to_it')
+                      .then(response => {
+
+                          if (response.data == 1) {
+                              if (response.data == 1) {
+                                  //   this.url = '/download_excel';
+                                  //   window.location.href = this.url;
+                              }
+                              alert('Record Submitted Successfuly..')
+                              swal('success', 'Record Submitted Successfuly..', 'success');
+                          } else {
+                              alert("Record Already Exists")
+                              swal('error', 'Record Already Exists', 'error');
+
+                          }
+                      }).catch(error => {
+
+                          console.log(error)
+
+
+                      })
+
+              },
               submit_report: function() {
                   axios.post('/submit_daily_report', {
                           'module': this.module,
@@ -71,8 +96,8 @@
 
                           if (response.data == 1) {
                               if (response.data == 1) {
-                                //   this.url = '/download_excel';
-                                //   window.location.href = this.url;
+                                  //   this.url = '/download_excel';
+                                  //   window.location.href = this.url;
                               }
                               alert('Record Submitted Successfuly..')
                               swal('success', 'Record Submitted Successfuly..', 'success');

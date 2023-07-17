@@ -14,11 +14,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class BiometricExport implements FromCollection, WithHeadings, WithEvents
+class IPphoneExport implements FromCollection, WithHeadings, WithEvents
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
     protected $headings;
     protected  $location_id;
 
@@ -56,9 +53,7 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
         $arr_instrulist_excel[] = array(
             's.no.' => 1,
             'location'  => $data[0]->SiteInfos->location,
-            'employee_count'   => $data[0]->SiteInfos->employee_count,
-            'attendance_mode'=>  $data[0]->SiteInfos->attendance_mode,
-            'employee_count'   => $data[0]->SiteInfos->employee_count,
+            'ext'   => $data[0]->SiteInfos->ext,
 
         );
         for ($day = 1; $day <= $days + 1; $day++) {
@@ -79,7 +74,7 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
                 $segment_ids = $get_day_date->segment_id;
 
                 $explode_segments = explode(',', $segment_ids);
-                if (in_array(2, $explode_segments)) {
+                if (in_array(3, $explode_segments)) {
                     $new_data[] = array(
                         'working' . '' . $day => 1
                     );
@@ -96,7 +91,7 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
                 );
             }
         }
-        
+
         $new_array = [];
         $new_array = array_merge($arr_instrulist_excel, $new_data);
         $combinedArray = array();

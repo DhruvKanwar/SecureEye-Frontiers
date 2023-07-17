@@ -16,6 +16,7 @@ class AddEmpCountToSiteInfoTable extends Migration
         Schema::table('site_info', function (Blueprint $table) {
             //
             $table->string('employee_count')->after('ext')->nullable();
+            $table->string('attendance_mode')->after('employee_count')->nullable();
 
         });
     }
