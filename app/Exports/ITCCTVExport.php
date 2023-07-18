@@ -58,6 +58,7 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
             $data = DailyReport::with('Itinfo')->where('location_id', $unique_location_ids[$i])->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->get();
 //    print_r($data);
 //         exit;
+            $day=1;
             for ($day = 1; $day <= $days + 1; $day++) {
                 $get_day_date = "";
                 if (strlen($day) == 1) {
@@ -67,7 +68,7 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
                 }
 
                 $date = $day_new . '-' . $currentMonth . '-' . $currentYear;
-                $get_day_date = DailyReport::with('SiteInfos')->where('report_date', $date)->first();
+                $get_day_date = DailyReport::with('SiteInfos')->where('location_id', $unique_location_ids[$i])->where('report_date', $date)->first();
                 // $get_day_date = DB::table('daily_report')->with('SiteInfos')->where('location_id', $this->location_id)->where('report_date', $date)->get();
 
 
@@ -93,6 +94,7 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
                     );
                 }
             }
+
             $arr_instrulist_excel[] = array(
                 's.no.' => $i + 1,
                 'location'  => $data[$i]->SiteInfos->location,
@@ -106,96 +108,7 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
             $result_array[$i] = $combinedArray;
         }
         return collect($result_array);
-        echo "<pre>";
-        print_r($result_array);
-        exit;
-        // for ($i = 0; $i < sizeof($data); $i++) {
-        //     // echo"<pre>";
-        //     // print_r($data[$i]->cctv_working);
-        //     // print_r($data[$i]->Itinfo->location);
-
-        //     $arr_instrulist_excel[] = array(
-        //         's.no.' => $i + 1,
-        //         'location'  => $data[$i]->Itinfo->location,
-        //         'cctv_count'   => $data[$i]->Itinfo->cctv_count,
-        //         'cctv_not_working'   => $data[$i]->cctv_working,
-
-        //     );
-        // }
-
-        // print_r($arr_instrulist_excel);
-        // exit;
-
-       
-        print_r($arr_instrulist_excel);
-        print_r($new_data);
-        exit;
-        // $arr_instrulist_excel[] = array(
-        //     's.no.' => 1,
-        //     'location'  => $data[0]->SiteInfos->location,
-        //     'cctv_count'   => $data[0]->SiteInfos->cctv_count,
-        //     'cctv_not_working'   => $data[0]->cctv_working,
-        // );
-        // exit;
-        $new_data = [];
-
-        // $arr_instrulist_excel[] = 1;
-        // $arr_instrulist_excel[] = $data[0]->SiteInfos->location;
-        // $arr_instrulist_excel[] = $data[0]->SiteInfos->cctv_count;
-
-
-        // $arr_instrulist_excel[] = array(
-        //     's.no.' => 1,
-        //     'location'  => $data[0]->SiteInfos->location,
-        //     'cctv_count'   => $data[0]->SiteInfos->cctv_count,
-        //     'cctv_not_working'   => $data[0]->cctv_working,
-        // );
-
-
-        for ($day = 1; $day <= $days + 1; $day++) {
-            $get_day_date = "";
-            if (strlen($day) == 1) {
-                $day_new = '0' . $day;
-            } else {
-                $day_new = $day;
-            }
-
-            $date = $day_new . '-' . $currentMonth . '-' . $currentYear;
-            $get_day_date = DailyReport::with('SiteInfos')->where('report_date', $date)->first();
-            // $get_day_date = DB::table('daily_report')->with('SiteInfos')->where('location_id', $this->location_id)->where('report_date', $date)->get();
-
-
-            if (!empty($get_day_date->segment_id)) {
-                // foreach ($get_day_date as $report) {
-                $segment_ids = $get_day_date->segment_id;
-
-                $explode_segments = explode(',', $segment_ids);
-                if (in_array(1, $explode_segments)) {
-                    $new_data[$day] = array(
-                        'working' . '' . $day => 1
-                    );
-                    // $new_data[] = "Working";
-                } else {
-                    $new_data[$day] = array(
-                        'not-working' . '' . $day => 0
-                    );
-                }
-                // }
-            } else {
-                $new_data[$day] = array(
-                    'not-found' . '' . $day => 2
-                );
-            }
-        }
-        print_r($new_data);
-        exit;
-
-        // print_r($arr_instrulist_excel);
-        // print_r($result_array);
-        // exit;
-
-
-        return collect($result_array);
+    
     }
 
     public function registerEvents(): array

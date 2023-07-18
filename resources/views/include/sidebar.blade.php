@@ -30,7 +30,10 @@
                     <a href="{{url('daily_report')}}"> Daily Report </a>
                 </li>
                 <li class="active">
-                    <a href="index2.html"> Analytics </a>
+                    <a href="{{url('segments_daily_report')}}"> Segment Daily Report </a>
+                </li>
+                <li class="active">
+                    <a href="{{url('send_regional_email')}}"> Send Email to Clients </a>
                 </li>
             </ul>
         </li>

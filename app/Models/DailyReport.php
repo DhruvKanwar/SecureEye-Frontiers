@@ -11,7 +11,7 @@ class DailyReport extends Model
     protected $table = 'daily_report';
     protected $fillable = [
         'location_id', 'segment_id', 'report_date', 'cctv_working', 'created_at', 'updated_at', 'saved_by_id', 'saved_by_name',
-        'updated_by_id', 'updated_by_name'
+        'updated_by_id', 'updated_by_name', 'segment_flag', 'mail_flag'
     ];
     public function SiteInfos()
     {

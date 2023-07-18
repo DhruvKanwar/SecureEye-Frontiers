@@ -10,7 +10,7 @@ class SiteInfo extends Model
     use HasFactory;
     protected $table = 'site_info';
     protected $fillable = [
-        'location', 'segment_ids',  'ext', 'cctv_count', 'status', 'created_at', 'updated_at'
+        'location', 'segment_ids',  'ext', 'cctv_count', 'status', 'created_at', 'updated_at', 'employee_count', 'attendance_mode'
     ];
 
     public function Segments()

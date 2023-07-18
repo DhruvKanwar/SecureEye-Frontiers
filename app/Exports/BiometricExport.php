@@ -56,8 +56,7 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
         $arr_instrulist_excel[] = array(
             's.no.' => 1,
             'location'  => $data[0]->SiteInfos->location,
-            'employee_count'   => $data[0]->SiteInfos->employee_count,
-            'attendance_mode'=>  $data[0]->SiteInfos->attendance_mode,
+            'attendance_mode' =>  $data[0]->SiteInfos->attendance_mode,
             'employee_count'   => $data[0]->SiteInfos->employee_count,
 
         );
