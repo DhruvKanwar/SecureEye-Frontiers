@@ -35,6 +35,9 @@
                 <li class="active">
                     <a href="{{url('send_regional_email')}}"> Send Email to Clients </a>
                 </li>
+                <li class="active">
+                    <a href="{{url('import_data')}}">Import Data </a>
+                </li>
             </ul>
         </li>
     </ul>

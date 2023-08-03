@@ -17,9 +17,8 @@ use App\Exports\ITIPphoneExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-
-
-
+use App\Imports\BulkImport;
+use Response;
 
 
 class ReportController extends Controller
@@ -361,6 +360,12 @@ class ReportController extends Controller
         }
     }
 
+
+    public function import_data()
+    {
+        return view('pages.import-data');
+    }
+
     public function send_regional_email()
     {
         $fetch_data = DailyReport::with('SiteInfos')->where('report_date', date('d-m-Y'))->where('segment_flag', 1)->where('mail_flag', 0)->get();
@@ -372,6 +377,32 @@ class ReportController extends Controller
         }
         return view('pages.regional-email', ['data' => $store_location_info]);
     }
+    public function import_master(Request $request)
+    {
+        // return $request->all();
+
+        if ($_POST['import_type'] == 1) {
+                $type = $_POST['import_type'];
+                //echo'<pre>'; print_r($_FILES); die;
+                $data = Excel::import(new BulkImport, request()->file('file'));
+                $response['success'] = true;
+                $response['import_type'] = $type;
+                $response['messages'] = 'Succesfully imported';
+                return Response::json($response);
+          
+        }
+        if ($_POST['import_type'] == 2) {
+            $type = $_POST['import_type'];
+            //echo'<pre>'; print_r($_FILES); die;
+            $data = Excel::import(new BulkImport, request()->file('file'));
+            $response['success'] = true;
+            $response['import_type'] = $type;
+            $response['messages'] = 'Succesfully imported';
+            return Response::json($response);
+        } 
+
+    }
+
     public function mail_locationwise_report(Request $request)
     {
         $data = $request->all();
