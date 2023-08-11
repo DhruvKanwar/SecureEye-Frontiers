@@ -5,12 +5,12 @@
       <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
           <div class="widget-content widget-content-area br-6">
               <div class="widget-content widget-content-area">
-                  <form class="simple-example">
+                  <form class="simple-example" v-if="!redirect_email">
                       <div class="form-row">
                           <div class="col-md-8 mb-4">
                               <label for="fullName">Segments</label>
                               <div class="form-group col-md-4">
-                                  <select class="form-control tagging approvalReq" id="segment" @change="get_locaion_segment()">
+                                  <select class="form-control tagging approvalReq" v-model="selectedSegment" id="segment" @change="get_locaion_segment();check_cctv(selectedSegment)">
                                       <option selected>--Select--</option>
                                       @foreach($segment_data as $segment)
                                       <option value="{{$segment->id}}">{{$segment->name}}</option>
@@ -21,7 +21,7 @@
 
                                   <ul class="schools" style="list-style-type: none; -webkit-columns: 1;-moz-columns: 1;columns: 1;">
                                       <li v-for="(location,index) in locations" style="font-weight:bold">
-                                          <input type="checkbox" v-model="module" :value="location.location_id" /> @{{index+1}} . @{{location.name}}
+                                          <input type="checkbox" class="locationCheckbox" v-model="module" :value="location.location_id" /> @{{index+1}} . @{{location.name}}
                                       </li>
                                   </ul>
 
@@ -29,15 +29,19 @@
                                       <label>Location Selected</label>
                                       <span>@{{module}}</span>
                                   </div><br />
-                                  <label>Count of CCTV Working</label>
-                                  <input type="number" v-model="cctv_working" />
+                                  <div v-if="cctv_flag">
+                                      <label>Count of CCTV Working</label>
+                                      <input type="number" v-model="cctv_working" />
+                                  </div>
                               </div>
 
                           </div>
                       </div>
-                      <button class="btn btn-primary" type="button" @click="send_email_it()">Send IT Email</button>
+                      <!-- <button class="btn btn-primary" type="button" @click="send_email_it()">Send IT Email</button> -->
                       <button class="btn btn-primary" type="button" @click="submit_segment_report()">Submit form</button>
                   </form>
+                  <a class="btn btn-primary" href="{{url('send_regional_email')}}" v-if="redirect_email">Redirect to Email</a>
+
               </div>
           </div>
       </div>
@@ -53,6 +57,9 @@
               module: [],
               cctv_working: "",
               selected_segment_id: "",
+              cctv_flag: false,
+              selectedSegment: "--Select--",
+              redirect_email: false,
 
 
           },
@@ -61,6 +68,14 @@
               //   alert('hello');
           },
           methods: {
+              check_cctv: function(id) {
+                  if (id == 1) {
+                      this.cctv_flag = true;
+                  } else {
+                      this.cctv_flag = false;
+                  }
+
+              },
               send_email_it: function() {
                   axios.get('/send_email_to_it')
                       .then(response => {
@@ -86,10 +101,30 @@
 
               },
               submit_segment_report: function() {
+                  this.redirect_email = false;
+                  if (this.selectedSegment == "--Select--") {
+                      alert("Please Select the segment");
+                      return 1;
+                  }
+                  const allChecks = document.querySelectorAll('.locationCheckbox');
+
+                  var uncheckedCheckboxes = [];
+
+                  allChecks.forEach(function(checkbox) {
+                      if (!checkbox.checked) {
+                          uncheckedCheckboxes.push(checkbox.value);
+                      }
+                  });
+
+                  var unchecked_location_ids = uncheckedCheckboxes.join(',');
+
+
+
                   axios.post('/submit_segment_report', {
                           'selected_locatiion_id': this.module,
                           'cctv_working': this.cctv_working,
-                          'segment_id': this.selected_segment_id
+                          'segment_id': this.selected_segment_id,
+                          'unchecked_location_ids': unchecked_location_ids
 
                       })
                       .then(response => {
@@ -103,8 +138,10 @@
                               alert('Record Submitted Successfuly..')
                               swal('success', 'Record Submitted Successfuly..', 'success');
                           } else if (response.data.name) {
-                              alert("These Locations "+response.data.name+" Entry has been already submitted for all the Segments")
+                              alert("These Locations " + response.data.name + " Entry has been already submitted for all the Segments")
 
+                          } else if (response.data == "101") {
+                              this.redirect_email = true;
                           }
                       }).catch(error => {
 

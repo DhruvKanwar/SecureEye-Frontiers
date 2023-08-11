@@ -21,6 +21,7 @@ use App\Imports\BulkImport;
 use Response;
 
 
+
 class ReportController extends Controller
 {
     public function __construct()
@@ -130,11 +131,15 @@ class ReportController extends Controller
             // return $collection;
 
             $cctv_filePath = 'IT_exports/it_cctv_report.xlsx';
+            // exit;
             $cctv = Excel::store($cctv_export, $cctv_filePath, 'public');
+            // exit;
 
             $biometric_headings = array_merge(['S No', 'Location', 'Attendance Mode', 'Employee Count',], range(1, $currentDate));
 
             $biometric_export = new ITBIOMETRICExport($biometric_headings);
+            //     $collection = $biometric_export->collection();
+            // return $collection;
             $biometric_filePath = 'IT_exports/it_biometric_report.xlsx';
             $biometric = Excel::store($biometric_export, $biometric_filePath, 'public');
 
@@ -143,9 +148,6 @@ class ReportController extends Controller
             $ipPhone_export = new ITIPphoneExport($iPphone_headings);
             $ipPhone_filePath = 'IT_exports/it_ipPhone_report.xlsx';
             $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
-
-            // print_r("Mail Stopped in Local");
-            // exit;
 
             if ($cctv && $biometric && $ipPhone) {
                 $data["email"] = 'dhroov.kanwar@eternitysolutions.net';
@@ -162,6 +164,8 @@ class ReportController extends Controller
                     public_path('storage') => storage_path('app/public/' . $ipPhone_filePath),
                 ];
 
+                // print_r("Mail Stopped in Local");
+                // exit;
                 Mail::send('emails.sendDailyReport', $data, function ($message) use ($data, $cctv_file, $biometric_file, $ipPhone_files) {
                     $message->to($data["email"], $data["email"])
                         ->subject($data["title"]);
@@ -296,9 +300,13 @@ class ReportController extends Controller
         $details = Auth::user();
         $locations_done = array();
         $store_data = array();
+        $update_flag=array();
+        $flag_update=array();
         $store_new_segment_id = array();
         $store_new_segment_id = explode(',', $data['segment_id']);
         $check_existence_flag = false;
+
+
 
         if (!empty($data['cctv_working'])) {
             $store_data['cctv_working'] = $data['cctv_working'];
@@ -310,6 +318,25 @@ class ReportController extends Controller
             // return $fetch_data;
             if (empty($fetch_data)) {
                 // $store_data['segment_id'] = implode(',', $data['module']);
+                if ($data['segment_id'] == 1) {
+                    $store_data['cctv_flag'] = 1;
+                }
+                if ($data['segment_id'] == 2) {
+                    $store_data['biometric_flag'] = 1;
+                }
+                if ($data['segment_id'] == 3) {
+                    $store_data['ipPhone1_flag'] = 1;
+                }
+                if ($data['segment_id'] == 4) {
+                    $store_data['ipPhone2_flag'] = 1;
+                }
+                if ($data['segment_id'] == 5) {
+                    $store_data['ipPhone3_flag'] = 1;
+                }
+                if ($data['segment_id'] == 6) {
+                    $store_data['ipPhone4_flag'] = 1;
+                }
+
                 $store_data['segment_id'] = $data['segment_id'];
                 $store_data['location_id'] = $selected_locations[$i];
                 $store_data['saved_by_name'] = $details->name;
@@ -324,10 +351,25 @@ class ReportController extends Controller
                 $explode_actual_segments = explode(',', $actual_segment_ids);
                 $explode_daily_report_segments = explode(',', $daily_report_segment_ids);
 
-                $diff1 = array_diff($explode_actual_segments, $explode_daily_report_segments);
-                $diff2 = array_diff($explode_daily_report_segments, $explode_actual_segments);
 
-                if (empty($diff1) && empty($diff2)) {
+                // Previous Code Starts
+                // $diff1 = array_diff($explode_actual_segments, $explode_daily_report_segments);
+                // $diff2 = array_diff($explode_daily_report_segments, $explode_actual_segments);
+
+                // if (empty($diff1) && empty($diff2)) {
+                //     $locations_done['name'][$i] = $site_info_data->location;
+                //     $check_existence_flag = true;
+                //     DailyReport::where('id', $fetch_data->id)->update([
+                //         'segment_flag' => 1,
+                //         'saved_by_name' => $details->name, 'saved_by_id' => $details->id
+                //     ]);
+                // }
+                // Previous Code Ends
+
+                if (
+                    $fetch_data->cctv_flag && $fetch_data->biometric_flag && $fetch_data->ipPhone1_flag && $fetch_data->ipPhone2_flag
+                    && $fetch_data->ipPhone3_flag && $fetch_data->ipPhone4_flag
+                ) {
                     $locations_done['name'][$i] = $site_info_data->location;
                     $check_existence_flag = true;
                     DailyReport::where('id', $fetch_data->id)->update([
@@ -337,8 +379,11 @@ class ReportController extends Controller
                 } else {
                     $mergedData = array_merge($explode_daily_report_segments, array_diff($store_new_segment_id, $explode_daily_report_segments));
 
-                    // Implode the merged array into a string
-                    $resultString = implode(',', $mergedData);
+                    $filteredArray = array_filter($mergedData);
+                    $resultString = implode(',', $filteredArray);
+                  
+
+                  
                     if (!empty($data['cctv_working'])) {
                         DailyReport::where('id', $fetch_data->id)->update([
                             'segment_id' => $resultString,
@@ -350,9 +395,173 @@ class ReportController extends Controller
                             'saved_by_name' => $details->name, 'saved_by_id' => $details->id
                         ]);
                     }
+
+                    if ($data['segment_id'] == 1) {
+                        $update_flag['cctv_flag'] = 1;
+                    }
+                    if ($data['segment_id'] == 2) {
+                        $update_flag['biometric_flag'] = 1;
+                    }
+                    if ($data['segment_id'] == 3) {
+                        $update_flag['ipPhone1_flag'] = 1;
+                    }
+                    if ($data['segment_id'] == 4) {
+                        $update_flag['ipPhone2_flag'] = 1;
+                    }
+                    if ($data['segment_id'] == 5) {
+                        $update_flag['ipPhone3_flag'] = 1;
+                    }
+                    if ($data['segment_id'] == 6) {
+                        $update_flag['ipPhone4_flag'] = 1;
+                    }
+
+                    DailyReport::where('id', $fetch_data->id)->update($update_flag);
+                    $update_flag=array();
                 }
             }
         }
+
+
+        $get_segments_locations = SegmentDetail::where('id', $data['segment_id'])->first();
+        $location_id = explode(',', $get_segments_locations->location_ids);
+
+        $records = SegmentDetail::select('id')->get();
+
+        $total_segment_ids = $records->pluck('id')->toArray();
+
+
+        $explode_location_id = array_map('intval', $location_id);
+        $store_data = array();
+        for ($i = 0; $i < sizeof($explode_location_id); $i++) {
+            $fetch_data = DailyReport::where('location_id', $explode_location_id[$i])->where('report_date', date('d-m-Y'))->first();
+           
+            if (empty($fetch_data)) {
+                // $store_data['segment_id'] = implode(',', $data['module']);
+                if ($data['segment_id'] == 1) {
+                    $store_data['cctv_flag'] = 1;
+                }
+                if ($data['segment_id'] == 2) {
+                    $store_data['biometric_flag'] = 1;
+                }
+                if ($data['segment_id'] == 3) {
+                    $store_data['ipPhone1_flag'] = 1;
+                }
+                if ($data['segment_id'] == 4) {
+                    $store_data['ipPhone2_flag'] = 1;
+                }
+                if ($data['segment_id'] == 5) {
+                    $store_data['ipPhone3_flag'] = 1;
+                }
+                if ($data['segment_id'] == 6) {
+                    $store_data['ipPhone4_flag'] = 1;
+                }
+                $store_data['location_id'] = $explode_location_id[$i];
+                $store_data['saved_by_name'] = $details->name;
+                $store_data['saved_by_id'] = $details->id;
+                $store_data['updated_by_name'] = $details->name;
+                $store_data['updated_by_id'] = $details->id;
+                $store_data['report_date'] = date('d-m-Y');
+                $store = DailyReport::create($store_data);
+            }
+
+        
+
+            $site_full_info = SiteInfo::where('id', $explode_location_id[$i])->first();
+            $seg_ids = explode(',', $site_full_info->segment_ids);
+            $explode_site_seg_ids = array_map('intval', $seg_ids);
+            $missing_ids = array_values(array_diff($total_segment_ids, $explode_site_seg_ids));
+
+            for ($j = 0; $j < sizeof($missing_ids); $j++) {
+                if ($missing_ids[$j] == 1) {
+                    $flag_update['cctv_flag'] = 1;
+                }
+                if ($missing_ids[$j] == 2) {
+                    $flag_update['biometric_flag'] = 1;
+                }
+                if ($missing_ids[$j] == 3) {
+                    $flag_update['ipPhone1_flag'] = 1;
+                }
+                if ($missing_ids[$j] == 4) {
+                    $flag_update['ipPhone2_flag'] = 1;
+                }
+                if ($missing_ids[$j] == 5) {
+                    $flag_update['ipPhone3_flag'] = 1;
+                }
+                if ($missing_ids[$j] == 6) {
+                    $flag_update['ipPhone4_flag'] = 1;
+                }
+                $fetch_data = DailyReport::where('location_id', $explode_location_id[$i])->where('report_date', date('d-m-Y'))->first();
+
+                DailyReport::where('id', $fetch_data->id)->update($flag_update);
+                $flag_update=array();
+            }
+        }
+// start
+
+    $not_checked_locations=$data['unchecked_location_ids'];
+
+    if(!empty($not_checked_locations))
+    {
+
+    $explode_not_checked_locations=explode(',',$not_checked_locations);
+        $update_flag = array();
+    for($i=0;$i<sizeof($explode_not_checked_locations);$i++)
+    {
+
+        $fetch_data=DailyReport::where('report_date',date('d-m-Y'))->where('location_id', $explode_not_checked_locations[$i])->first();
+
+        if ($data['segment_id'] == 1) {
+            $update_flag['cctv_flag'] = 1;
+        }
+        if ($data['segment_id'] == 2) {
+            $update_flag['biometric_flag'] = 1;
+        }
+        if ($data['segment_id'] == 3) {
+            $update_flag['ipPhone1_flag'] = 1;
+        }
+        if ($data['segment_id'] == 4) {
+            $update_flag['ipPhone2_flag'] = 1;
+        }
+        if ($data['segment_id'] == 5) {
+            $update_flag['ipPhone3_flag'] = 1;
+        }
+        if ($data['segment_id'] == 6) {
+            $update_flag['ipPhone4_flag'] = 1;
+        }
+
+        DailyReport::where('id', $fetch_data->id)->update($update_flag);
+        $update_flag = array();
+    }
+}
+
+        // end
+
+        // start
+
+        // if in that location segment is not present
+
+
+        // end
+
+
+        // start
+  
+
+        $check_all_flags = DailyReport::where('report_date', date('d-m-Y'))->where('cctv_flag', 1)->where('biometric_flag', 1)->where('ipPhone1_flag', 1)->where('ipPhone2_flag', 1)->where('ipPhone3_flag', 1)->where('ipPhone4_flag', 1)->get();
+        for ($k = 0; $k < sizeof($check_all_flags); $k++) {
+            $update_segment_flag=DailyReport::where('id',$check_all_flags[$k]->id)->update(['segment_flag'=>1]);
+            }
+        // end
+
+
+        $last_check = DailyReport::where('report_date', date('d-m-Y'))->where('cctv_flag', 1)->where('biometric_flag', 1)->where('ipPhone1_flag', 1)->where('ipPhone2_flag', 1)->where('ipPhone3_flag', 1)->where('ipPhone4_flag', 1)->get();
+        $site_info = SiteInfo::get();
+        if(sizeof($site_info) == sizeof($last_check))
+        {
+          return "101";
+        }
+      
+
         if ($check_existence_flag) {
             return $locations_done;
         } else {
@@ -369,7 +578,7 @@ class ReportController extends Controller
     public function send_regional_email()
     {
         $fetch_data = DailyReport::with('SiteInfos')->where('report_date', date('d-m-Y'))->where('segment_flag', 1)->where('mail_flag', 0)->get();
-      
+
         $store_location_info = array();
         for ($i = 0; $i < sizeof($fetch_data); $i++) {
             $store_location_info['id'][$i] = $fetch_data[$i]->SiteInfos->id;
@@ -382,14 +591,13 @@ class ReportController extends Controller
         // return $request->all();
 
         if ($_POST['import_type'] == 1) {
-                $type = $_POST['import_type'];
-                //echo'<pre>'; print_r($_FILES); die;
-                $data = Excel::import(new BulkImport, request()->file('file'));
-                $response['success'] = true;
-                $response['import_type'] = $type;
-                $response['messages'] = 'Succesfully imported';
-                return Response::json($response);
-          
+            $type = $_POST['import_type'];
+            //echo'<pre>'; print_r($_FILES); die;
+            $data = Excel::import(new BulkImport, request()->file('file'));
+            $response['success'] = true;
+            $response['import_type'] = $type;
+            $response['messages'] = 'Succesfully imported';
+            return Response::json($response);
         }
         if ($_POST['import_type'] == 2) {
             $type = $_POST['import_type'];
@@ -399,8 +607,7 @@ class ReportController extends Controller
             $response['import_type'] = $type;
             $response['messages'] = 'Succesfully imported';
             return Response::json($response);
-        } 
-
+        }
     }
 
     public function mail_locationwise_report(Request $request)
@@ -408,48 +615,48 @@ class ReportController extends Controller
         $data = $request->all();
         $details = Auth::user();
         $location_id = $data['location_id'];
-        $get_location_info=SiteInfo::where('id',$location_id)->first();
+        $get_location_info = SiteInfo::where('id', $location_id)->first();
         $location_name = $get_location_info->location;
-            $currentDate = date('j');
+        $currentDate = date('j');
 
-            $cctv_headings = array_merge(['S No', 'Location', 'Cameras Installed', 'Count of Cameras not Working',], range(1, $currentDate));
-            $cctv_export = new CCTVExport($cctv_headings, $location_id);
-            $cctv_filePath = 'exports/cctv_data_' . $location_name . '.xlsx';
-            $cctv = Excel::store($cctv_export, $cctv_filePath, 'public');
+        $cctv_headings = array_merge(['S No', 'Location', 'Cameras Installed', 'Count of Cameras not Working',], range(1, $currentDate));
+        $cctv_export = new CCTVExport($cctv_headings, $location_id);
+        $cctv_filePath = 'exports/cctv_data_' . $location_name . '.xlsx';
+        $cctv = Excel::store($cctv_export, $cctv_filePath, 'public');
 
-            $biometric_headings = array_merge(['S No', 'Location', 'Attendance Mode', 'Employee Count',], range(1, $currentDate));
+        $biometric_headings = array_merge(['S No', 'Location', 'Attendance Mode', 'Employee Count',], range(1, $currentDate));
 
-            $biometric_export = new BiometricExport($biometric_headings, $location_id);
-            $biometric_filePath = 'exports/biometric_data_' . $location_name . '.xlsx';
-            $biometric = Excel::store($biometric_export, $biometric_filePath, 'public');
+        $biometric_export = new BiometricExport($biometric_headings, $location_id);
+        $biometric_filePath = 'exports/biometric_data_' . $location_name . '.xlsx';
+        $biometric = Excel::store($biometric_export, $biometric_filePath, 'public');
 
-            $iPphone_headings = array_merge(['S No', 'Location', 'Ext'], range(1, $currentDate));
+        $iPphone_headings = array_merge(['S No', 'Location', 'Ext'], range(1, $currentDate));
 
-            $ipPhone_export = new IPphoneExport($iPphone_headings, $location_id);
-            $ipPhone_filePath = 'exports/ipPhone_data_' . $location_name . '.xlsx';
-            $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
+        $ipPhone_export = new IPphoneExport($iPphone_headings, $location_id);
+        $ipPhone_filePath = 'exports/ipPhone_data_' . $location_name . '.xlsx';
+        $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
 
-            // print_r("Mail Stopped in Local");
-            // exit;
+        // print_r("Mail Stopped in Local");
+        // exit;
 
-            if ($cctv && $biometric && $ipPhone) {
-                $get_email = SendEmail::where('location_id', $location_id)->first();
-                $data["email"] = $get_email->email;
-                $data["title"] = "Daily Report " . date('d-m-Y');
-                $data["body"] = "Please Find the file attachment for ter List";
+        if ($cctv && $biometric && $ipPhone) {
+            $get_email = SendEmail::where('location_id', $location_id)->first();
+            $data["email"] = $get_email->email;
+            $data["title"] = "Daily Report " . date('d-m-Y');
+            $data["body"] = "Please Find the file attachment for ter List";
 
-                $cctv_file = [
-                    public_path('storage') => storage_path('app/public/' . $cctv_filePath),
-                ];
-                $biometric_file = [
-                    public_path('storage') => storage_path('app/public/' . $biometric_filePath),
-                ];
-                $ipPhone_files = [
-                    public_path('storage') => storage_path('app/public/' . $ipPhone_filePath),
-                ];
+            $cctv_file = [
+                public_path('storage') => storage_path('app/public/' . $cctv_filePath),
+            ];
+            $biometric_file = [
+                public_path('storage') => storage_path('app/public/' . $biometric_filePath),
+            ];
+            $ipPhone_files = [
+                public_path('storage') => storage_path('app/public/' . $ipPhone_filePath),
+            ];
 
-             try{
-           Mail::send('emails.sendDailyReport', $data, function ($message) use ($data, $cctv_file, $biometric_file, $ipPhone_files) {
+            try {
+                Mail::send('emails.sendDailyReport', $data, function ($message) use ($data, $cctv_file, $biometric_file, $ipPhone_files) {
                     $message->to($data["email"], $data["email"])
                         ->subject($data["title"]);
 
@@ -472,18 +679,18 @@ class ReportController extends Controller
             } catch (\Exception $e) {
                 // return $e;
             }
-                return 1;
-            }
+            return 1;
+        }
 
 
 
-            return response()->json(['message' => 'Excel file stored successfully']);
+        return response()->json(['message' => 'Excel file stored successfully']);
 
 
-            // // Generate the collection
-            // $collection = $export->collection();
-            // return $collection;
+        // // Generate the collection
+        // $collection = $export->collection();
+        // return $collection;
 
-        
+
     }
 }

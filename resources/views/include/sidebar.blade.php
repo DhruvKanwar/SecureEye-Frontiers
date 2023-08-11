@@ -26,18 +26,18 @@
                 </div>
             </a>
             <ul class="collapse submenu recent-submenu mini-recent-submenu list-unstyled show" id="dashboard" data-parent="#accordionExample">
-                <li>
+                <!-- <li>
                     <a href="{{url('daily_report')}}"> Daily Report </a>
-                </li>
+                </li> -->
                 <li class="active">
                     <a href="{{url('segments_daily_report')}}"> Segment Daily Report </a>
                 </li>
                 <li class="active">
                     <a href="{{url('send_regional_email')}}"> Send Email to Clients </a>
                 </li>
-                <li class="active">
+                <!-- <li class="active">
                     <a href="{{url('import_data')}}">Import Data </a>
-                </li>
+                </li> -->
             </ul>
         </li>
     </ul>

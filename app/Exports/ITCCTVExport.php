@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
+
 class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
 {
     protected $headings;
@@ -40,7 +41,6 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
         $currentYear = date('Y');
         $data = array();
         $data = DailyReport::with('Itinfo')->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->get();
-
         $result_array = array();
         $location_id = array();
         $new_array = [];
@@ -52,12 +52,10 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
         $unique_location_ids = array_values($uniqueLocationData); // Resetting array keys
         $data = [];
 
-        // print_r(sizeof($unique_location_ids));
-        // exit;
         for ($i = 0; $i < sizeof($unique_location_ids); $i++) {
             $data = DailyReport::with('Itinfo')->where('location_id', $unique_location_ids[$i])->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->get();
-//    print_r($data);
-//         exit;
+
+                    // exit;
             $day=1;
             for ($day = 1; $day <= $days + 1; $day++) {
                 $get_day_date = "";
@@ -72,7 +70,7 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
                 // $get_day_date = DB::table('daily_report')->with('SiteInfos')->where('location_id', $this->location_id)->where('report_date', $date)->get();
 
 
-                if (!empty($get_day_date->segment_id)) {
+                if (!empty($get_day_date)) {
                     // foreach ($get_day_date as $report) {
                     $segment_ids = $get_day_date->segment_id;
 
@@ -93,15 +91,16 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
                         'not-found' . '' . $day => 2
                     );
                 }
+           
             }
-
+         
             $arr_instrulist_excel[] = array(
                 's.no.' => $i + 1,
-                'location'  => $data[$i]->SiteInfos->location,
-                'cctv_count'   => $data[$i]->SiteInfos->cctv_count,
-                'cctv_not_working'   => $data[$i]->cctv_working,
+                'location'  => $data[0]->SiteInfos->location,
+                'cctv_count'   => $data[0]->SiteInfos->cctv_count,
+                'cctv_not_working'   => $data[0]->cctv_working,
             );
-
+         
             $new_array = array_merge($arr_instrulist_excel, $new_data);
             $combinedArray = array();
             $combinedArray = array_merge(...$new_array);
@@ -134,19 +133,24 @@ class ITCCTVExport implements FromCollection, WithHeadings, WithEvents
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('00FF00'); // Green color
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 0) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('FF0000'); // Red color
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 2) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
-                                ->setFillType(Fill::FILL_SOLID)
-                                ->getStartColor()
-                                ->setRGB('FFFFFF'); // White color
+                                ->setFillType(Fill::FILL_NONE); // No fill
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         }
+
                     }
                 }
             },

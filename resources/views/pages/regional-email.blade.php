@@ -24,9 +24,9 @@
                           </div>
                       </div>
                       @if (isset($data['id']) && isset($data['name']) && count($data['id']) === count($data['name']))
-                      <button class="btn btn-primary" type="button" @click="mail_locationwise_report()">Send Email</button>
+                      <button class="btn btn-primary" type="button" @click="mail_locationwise_report()">@{{btn_text}}</button>
                       @else
-                      <button class="btn btn-primary" type="button" @click="send_email_it()">Send IT Email</button>
+                      <button class="btn btn-primary" type="button" @click="send_email_it()">@{{btn_it_text}}</button>
                       @endif
                   </form>
               </div>
@@ -41,6 +41,8 @@
           // },
           data: {
               location_id: "",
+              btn_text: "Send Email",
+              btn_it_text: "Send IT Email",
 
           },
           created: function() {
@@ -49,6 +51,8 @@
           },
           methods: {
               send_email_it: function() {
+                  this.btn_it_text = "Sending...";
+
                   axios.get('/send_email_to_it')
                       .then(response => {
 
@@ -57,15 +61,16 @@
                                   //   this.url = '/download_excel';
                                   //   window.location.href = this.url;
                               }
-                              alert('Record Submitted Successfuly..')
-                              swal('success', 'Record Submitted Successfuly..', 'success');
+                              alert('Mail Sent Successfuly..')
+                              //   swal('success', 'Record Submitted Successfuly..', 'success');
                           } else {
                               alert("Record Already Exists")
-                              swal('error', 'Record Already Exists', 'error');
+                              this.btn_it_text = "Send IT Email";
+                              swal('error', 'Mail Already Sent', 'error');
 
                           }
                       }).catch(error => {
-
+                          this.btn_it_text = "Send IT Email";
                           console.log(error)
 
 
@@ -74,6 +79,7 @@
               },
               mail_locationwise_report: function() {
                   this.location_id = document.getElementById('location').value;
+                  this.btn_text = "Sending...";
 
                   axios.post('/mail_locationwise_report', {
                           'location_id': this.location_id
@@ -85,17 +91,18 @@
                           if (response.data == 1) {
                               if (response.data == 1) {
                                   //   this.url = '/download_excel';
+                                  alert('Mail Sent Successfuly..')
                                   window.location.reload();
                                   //   window.location.href = this.url;
                               }
-                              alert('Record Submitted Successfuly..')
                               swal('success', 'Record Submitted Successfuly..', 'success');
                           } else if (response.data.name) {
+                              this.btn_text = "Send Email";
                               alert("These Locations " + response.data.name + " Entry has been already submitted for all the Segments")
 
                           }
                       }).catch(error => {
-
+                          this.btn_text = "Send Email";
                           console.log(error)
 
 

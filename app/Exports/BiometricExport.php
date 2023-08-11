@@ -73,7 +73,7 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
             // $get_day_date = DB::table('daily_report')->with('SiteInfos')->where('location_id', $this->location_id)->where('report_date', $date)->get();
 
 
-            if (!empty($get_day_date->segment_id)) {
+            if (!empty($get_day_date)) {
                 // foreach ($get_day_date as $report) {
                 $segment_ids = $get_day_date->segment_id;
 
@@ -134,18 +134,19 @@ class BiometricExport implements FromCollection, WithHeadings, WithEvents
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('00FF00'); // Green color
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 0) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('FF0000'); // Red color
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 2) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
-                                ->setFillType(Fill::FILL_SOLID)
-                                ->getStartColor()
-                                ->setRGB('FFFFFF'); // White color
+                                ->setFillType(Fill::FILL_NONE); // No fill
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         }
                     }
                 }

@@ -56,7 +56,7 @@ class ITBIOMETRICExport implements FromCollection, WithHeadings, WithEvents
         // exit;
         for ($i = 0; $i < sizeof($unique_location_ids); $i++) {
             $data = DailyReport::with('Itinfo')->where('location_id', $unique_location_ids[$i])->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->get();
-            //    print_r($data);
+             
             //         exit;
             for ($day = 1; $day <= $days + 1; $day++) {
                 $get_day_date = "";
@@ -71,7 +71,7 @@ class ITBIOMETRICExport implements FromCollection, WithHeadings, WithEvents
                 // $get_day_date = DB::table('daily_report')->with('SiteInfos')->where('location_id', $this->location_id)->where('report_date', $date)->get();
 
 
-                if (!empty($get_day_date->segment_id)) {
+                if (!empty($get_day_date)) {
                     // foreach ($get_day_date as $report) {
                     $segment_ids = $get_day_date->segment_id;
 
@@ -97,9 +97,9 @@ class ITBIOMETRICExport implements FromCollection, WithHeadings, WithEvents
 
             $arr_instrulist_excel[] = array(
                 's.no.' => $i + 1,
-                'location'  => $data[$i]->SiteInfos->location,
-                'attendance_mode'   => $data[$i]->SiteInfos->attendance_mode,
-                'employee_count'   => $data[$i]->SiteInfos->employee_count,
+                'location'  => $data[0]->SiteInfos->location,
+                'attendance_mode'   => $data[0]->SiteInfos->attendance_mode,
+                'employee_count'   => $data[0]->SiteInfos->employee_count,
             );
 
             $new_array = array_merge($arr_instrulist_excel, $new_data);
@@ -107,6 +107,8 @@ class ITBIOMETRICExport implements FromCollection, WithHeadings, WithEvents
             $combinedArray = array_merge(...$new_array);
             $result_array[$i] = $combinedArray;
         }
+        // print_r($result_array);
+        // exit;
         return collect($result_array);
     }
 
@@ -133,19 +135,24 @@ class ITBIOMETRICExport implements FromCollection, WithHeadings, WithEvents
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('00FF00'); // Green color
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 0) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()
                                 ->setRGB('FF0000'); // Red color
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         } else if ($cellValue == 2) {
                             $event->getSheet()->getStyleByColumnAndRow($columnIndex, $row)
                                 ->getFill()
-                                ->setFillType(Fill::FILL_SOLID)
-                                ->getStartColor()
-                                ->setRGB('FFFFFF'); // White color
+                                ->setFillType(Fill::FILL_NONE); // No fill
+                            // Reset the cell value to an empty string
+                            $event->getSheet()->setCellValueByColumnAndRow($columnIndex, $row, '');
                         }
+
                     }
                 }
             },
