@@ -150,7 +150,7 @@ class ReportController extends Controller
             $ipPhone = Excel::store($ipPhone_export, $ipPhone_filePath, 'public');
 
             if ($cctv && $biometric && $ipPhone) {
-                $data["email"] = 'dhroov.kanwar@eternitysolutions.net';
+                $data["email"] = 'itsupport@frontierag.com';
                 $data["title"] = "Daily Report " . date('d-m-Y');
                 $data["body"] = "Please Find the file attachment for ter List";
 
