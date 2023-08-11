@@ -136,7 +136,7 @@
                                   //   window.location.href = this.url;
                               }
                               alert('Record Submitted Successfuly..')
-                            //   window.location.reload();
+                              window.location.reload();
                               swal('success', 'Record Submitted Successfuly..', 'success');
                           } else if (response.data.name) {
                               alert("These Locations " + response.data.name + " Entry has been already submitted for all the Segments")
